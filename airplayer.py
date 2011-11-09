@@ -18,6 +18,15 @@ class YoutubeVideo:
 	def __init__(self, url, displayname):
 		self.url = url
 		self.displayname = displayname
+		
+class AirPlayDevice:
+	def __init__(self, interfaceIndex, fullname, hosttarget, port):
+		self.interfaceIndex = interfaceIndex
+		self.fullname = fullname
+		self.hosttarget = hosttarget
+		self.port = port;
+		self.displayname = hosttarget.replace(".local.", "")
+		self.ip = 0
 
 def htc(m):
     return chr(int(m.group(1),16))
@@ -73,49 +82,19 @@ def get_supported_formats(c):
 		return;
 		
 	return atvSupported
+
+def post_message(sel_vid):
+	body = "Content-Location: %s\nStart-Position: 0\n\n" % (sel_vid)
 	
-
-youtubeId = get_youtube_id(youtubeId)
-content = parse_youtube_info(youtubeId)
-
-formats = get_supported_formats(content)
-
-print "-----"
-print "This video is available in the following formats:"
-print "-----"
-count = 1
-for ytVideo in formats:
-	print "%d: %s" % (count, ytVideo.displayname)
-	count += 1
-
-print "-----\n"
-selectedVideoIndex = int(raw_input("Select your video format...\n")) - 1
-selectedVideo = formats[selectedVideoIndex].url
-
-
-class AirPlayDevice:
-	def __init__(self, interfaceIndex, fullname, hosttarget, port):
-		self.interfaceIndex = interfaceIndex
-		self.fullname = fullname
-		self.hosttarget = hosttarget
-		self.port = port;
-		self.displayname = hosttarget.replace(".local.", "")
-		self.ip = 0
-
-def get_body():
-	return "Content-Location: %s\nStart-Position: 0\n\n" % (selectedVideo)
-
-def post_message():
 	return "POST /play HTTP/1.1\n" \
 		   "Content-Length: %d\n"  \
-		   "User-Agent: MediaControl/1.0\n\n%s" % (len(get_body()), get_body())
+		   "User-Agent: MediaControl/1.0\n\n%s" % (len(body), body)
 		
 def connect_to_socket(ip, port):
 	s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 	s.connect((ip, port))
-	s.send(post_message())
+	s.send(post_message(selectedVideo))
 	s.close()
-
 
 def query_record_callback(sdRef, flags, interfaceIndex, errorCode, fullname, rrtype, rrclass, rdata, ttl):
 	if errorCode == pybonjour.kDNSServiceErr_NoError:
@@ -123,17 +102,14 @@ def query_record_callback(sdRef, flags, interfaceIndex, errorCode, fullname, rrt
 		for host in resolvedHosts:
 			if host.hosttarget == fullname:
 				host.ip = resolved_ip
-			
 		
 		queried.append(True)
-
 
 def resolve_callback(sdRef, flags, interfaceIndex, errorCode, fullname, hosttarget, port, txtRecord):
 	if errorCode == pybonjour.kDNSServiceErr_NoError:
 		resolvedHosts.append(AirPlayDevice(interfaceIndex, fullname, hosttarget, port))
 		resolved.append(True)
 		
-
 def browse_callback(sdRef, flags, interfaceIndex, errorCode, serviceName, regtype, replyDomain):
 	if errorCode != pybonjour.kDNSServiceErr_NoError:
 		return
@@ -142,7 +118,6 @@ def browse_callback(sdRef, flags, interfaceIndex, errorCode, serviceName, regtyp
 		return
 	
 	resolve_sdRef = pybonjour.DNSServiceResolve(0, interfaceIndex, serviceName, regtype, replyDomain, resolve_callback)
-	
 	
 	try:
 		while not resolved:
@@ -161,6 +136,31 @@ def browse_callback(sdRef, flags, interfaceIndex, errorCode, serviceName, regtyp
 
 
 
+### --- START --- ###
+
+youtubeId = get_youtube_id(youtubeId)
+content = parse_youtube_info(youtubeId)
+
+formats = get_supported_formats(content)
+
+### --- UNCOMMET TO LET USER CHOOSE VIDEO QUALITY --- ###
+#print "-----"
+#print "This video is available in the following formats:"
+#print "-----"
+#count = 1
+#for ytVideo in formats:
+#	print "%d: %s" % (count, ytVideo.displayname)
+#	count += 1
+#
+#print "-----\n"
+#selectedVideoIndex = int(raw_input("Select your video format...\n")) - 1
+
+### 
+if len(formats) == 0:
+	sys.exit()
+	
+	
+selectedVideo = formats[0].url
 
 
 browse_sdRef = pybonjour.DNSServiceBrowse(regtype = regtype, callBack = browse_callback)
@@ -183,8 +183,11 @@ for host in resolvedHosts:
 	print "%d: %s" % (count, host.displayname)
 	count += 1
 	
-print "\n-----"
+print "-----"
 selectedHost = int(raw_input("Select your airplay device...\n")) - 1
+
+if selectedHost >= len(resolvedHosts):
+	sys.exit("ERROR: There is no device at that index")
 
 host = resolvedHosts[selectedHost]
 print "Connecting to: %s" % (resolvedHosts[selectedHost].displayname)
