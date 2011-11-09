@@ -1,6 +1,6 @@
 AirPlayer
 =======
-This program lets you send YouTube videos from you Mac to your Airplay Device, it will soon be able to send other media as well. 
+This program lets you send YouTube videos and other files from you Mac to your Airplay Device. 
 
 Install & Usage
 ===========
@@ -26,9 +26,15 @@ To Play
 ----------
 `cd` into your AirPlayer folder and run this command.
 
+	# To play a video from YouTube
+	# It will automatically pick the highest possible quality and send it to you AirPlay Device.
     python airplayer.py http://www.youtube.com/watch?v=8To-6VIJZRE
-
-It will automatically pick the highest possible quality and send it to you AirPlay Device.
+or
+	# To play a local mp3 file (must be on your own server at the moment)
+	python airplayer.py http://192.168.0.10/10%20Not%20Exactly.mp3
+or
+	# To play a hosted video
+	python airplayer.py http://movies.apple.com/media/us/iphone/2011/ads/apple-iphone4s-siri-snow-today-us-20111030_r848-9cie.mov
 
 Licence
 ----------
