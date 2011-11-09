@@ -11,7 +11,7 @@ import pybonjour
 # The Magic AirPlay tcp host
 regtype = "_airplay._tcp"
 
-youtubeId = sys.argv[1] # Gets the Youtube Video url
+_input = sys.argv[1] # Gets the Youtube Video url
 timeout = 5 # 5 Seconds timeout on each request
 resolved = []
 queried = []
@@ -47,6 +47,9 @@ def urldecode(url):
     rex = re.compile('%([0-9a-hA-H][0-9a-hA-H])',re.M)
     return rex.sub(htc,url)
 
+
+def is_youtube_type(target):
+	return "youtube" in target
 #
 # Parsing the Youtube query string to get the video Id
 def get_youtube_id(vidUrl):
@@ -165,31 +168,32 @@ def browse_callback(sdRef, flags, interfaceIndex, errorCode, serviceName, regtyp
 
 ### --- START --- ###
 
-youtubeId = get_youtube_id(youtubeId)
-content = parse_youtube_info(youtubeId)
+if is_youtube_type(_input):
+	youtubeId = get_youtube_id(_input)
+	content = parse_youtube_info(youtubeId)
+	formats = get_supported_formats(content)
 
-formats = get_supported_formats(content)
 
+	### --- UNCOMMET TO LET USER CHOOSE VIDEO QUALITY --- ###
+		#print "-----"
+		#print "This video is available in the following formats:"
+		#print "-----"
+		#count = 1
+		#for ytVideo in formats:
+		#	print "%d: %s" % (count, ytVideo.displayname)
+		#	count += 1
+		#
+		#print "-----\n"
+		#selectedVideoIndex = int(raw_input("Select your video format...\n")) - 1
 
-### --- UNCOMMET TO LET USER CHOOSE VIDEO QUALITY --- ###
-	#print "-----"
-	#print "This video is available in the following formats:"
-	#print "-----"
-	#count = 1
-	#for ytVideo in formats:
-	#	print "%d: %s" % (count, ytVideo.displayname)
-	#	count += 1
-	#
-	#print "-----\n"
-	#selectedVideoIndex = int(raw_input("Select your video format...\n")) - 1
-
-### 
-if len(formats) == 0:
-	sys.exit()
+	### 
+	if len(formats) == 0:
+		sys.exit()
 	
 	
-selectedVideo = formats[0].url
-
+	selectedVideo = formats[0].url
+else:
+	selectedVideo = _input
 
 browse_sdRef = pybonjour.DNSServiceBrowse(regtype = regtype, callBack = browse_callback)
 
