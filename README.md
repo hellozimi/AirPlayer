@@ -24,7 +24,7 @@ If you don't know how to install a module do this:
 
 To Play
 ----------
-`cd` into your AirPlayer folder like this: `cd ~/AirPlayer` and run this command.
+`cd` into your AirPlayer folder and run this command.
 
     python airplayer.py http://www.youtube.com/watch?v=8To-6VIJZRE
 
