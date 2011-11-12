@@ -169,6 +169,7 @@ def browse_callback(sdRef, flags, interfaceIndex, errorCode, serviceName, regtyp
 ### --- START --- ###
 
 if is_youtube_type(_input):
+	print "Working..."
 	youtubeId = get_youtube_id(_input)
 	content = parse_youtube_info(youtubeId)
 	formats = get_supported_formats(content)
