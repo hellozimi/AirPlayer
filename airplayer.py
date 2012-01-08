@@ -5,11 +5,18 @@ import socket
 import requests
 import urlparse 
 import pybonjour
+import urllib
+import string
+
+
+from xml.dom import minidom
 
 
 #
 # The Magic AirPlay tcp host
 regtype = "_airplay._tcp"
+
+BLIP_RSS_URL = "http://blip.tv/rss/flash/%s"
 
 _input = sys.argv[1] # Gets the Youtube Video url
 timeout = 5 # 5 Seconds timeout on each request
@@ -47,6 +54,8 @@ def urldecode(url):
     rex = re.compile('%([0-9a-hA-H][0-9a-hA-H])',re.M)
     return rex.sub(htc,url)
 
+#
+# ---------------------------- YOUTUBE ----------------------------
 
 def is_youtube_type(target):
 	return "youtube" in target
@@ -101,6 +110,38 @@ def get_supported_formats(c):
 		return;
 		
 	return atvSupported
+
+
+#
+# ---------------------------- BLIP TV ----------------------------
+
+def is_blip_tv(type):
+	return "blip.tv" in type
+
+def get_blip_video_id(url):
+	parts = url.split("-")
+	return parts[len(parts)-1]
+
+def parse_blip(video_id):
+	url = BLIP_RSS_URL % video_id
+	dom = minidom.parse(urllib.urlopen(url))
+
+	formats = []
+
+	for node in dom.getElementsByTagNameNS("http://search.yahoo.com/mrss/", "content"):
+		role = node.getAttribute("blip:role")
+		if role == "Source":
+			continue
+
+		formats.append({
+			'url' 		 : node.getAttribute("url"),
+			'resolution' : node.getAttribute("height")
+		})
+
+	return formats
+
+#
+# ---------------------------- POSTS ----------------------------
 
 #
 # Defines the Post message to play the selected video
@@ -168,8 +209,8 @@ def browse_callback(sdRef, flags, interfaceIndex, errorCode, serviceName, regtyp
 
 ### --- START --- ###
 
+print "Working..."
 if is_youtube_type(_input):
-	print "Working..."
 	youtubeId = get_youtube_id(_input)
 	content = parse_youtube_info(youtubeId)
 	formats = get_supported_formats(content)
@@ -193,6 +234,23 @@ if is_youtube_type(_input):
 	
 	
 	selectedVideo = formats[0].url
+elif is_blip_tv(_input):
+	formats = parse_blip(get_blip_video_id(_input))
+	if len(formats) == 0:
+		sys.exit()
+	
+	foundHD = False
+	
+	for video in formats:
+		print video["resolution"]
+		if video["resolution"] == "720":
+			selectedVideo = video["url"]
+			foundHD = True
+			break
+			
+	if not foundHD:
+		selectedVideo = formats[0]["url"]
+			
 else:
 	selectedVideo = _input
 
@@ -225,7 +283,10 @@ if selectedHost >= len(resolvedHosts):
 host = resolvedHosts[selectedHost]
 print "Connecting to: %s" % (resolvedHosts[selectedHost].displayname)
 
-query_sdRef = pybonjour.DNSServiceQueryRecord(interfaceIndex = host.interfaceIndex, fullname = host.hosttarget, rrtype = pybonjour.kDNSServiceType_A, callBack = query_record_callback)
+query_sdRef = pybonjour.DNSServiceQueryRecord(interfaceIndex = host.interfaceIndex,
+											  fullname = host.hosttarget,
+											  rrtype = pybonjour.kDNSServiceType_A,
+											  callBack = query_record_callback)
 
 try: 
 	while not queried:
