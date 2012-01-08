@@ -37,6 +37,7 @@ or
 
 	# To play a video from blip.tv
 	python airplayer.py http://blip.tv/wptuts/getting-loopy-ajax-powered-loops-with-jquery-and-wordpress-5805465
+or
 
 	# To play a hosted video
 	python airplayer.py http://movies.apple.com/media/us/iphone/2011/ads/apple-iphone4s-siri-snow-today-us-20111030_r848-9cie.mov
