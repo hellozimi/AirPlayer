@@ -7,6 +7,7 @@ import urlparse
 import pybonjour
 import urllib
 import string
+import time
 
 
 from xml.dom import minidom
@@ -158,9 +159,11 @@ def connect_to_socket(ip, port):
 	s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 	s.connect((ip, port))
 	s.send(post_message(selectedVideo))
-	s.close()
+	var = 1
+	print "Press CTRL-C to end."
+	while var == 1 :  # This constructs an infinite loop
+		pass
 
-#
 # Gets the IP from selected device
 def query_record_callback(sdRef, flags, interfaceIndex, errorCode, fullname, rrtype, rrclass, rdata, ttl):
 	if errorCode == pybonjour.kDNSServiceErr_NoError:
