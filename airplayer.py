@@ -161,8 +161,14 @@ def connect_to_socket(ip, port):
 	s.send(post_message(selectedVideo))
 	var = 1
 	print "Press CTRL-C to end."
+
+	timeTrigger = 0
 	while var == 1 :  # This constructs an infinite loop
-		pass
+		# keep the socket alive by sending a packet once per second
+		curTime = time.time()
+		if curTime > timeTrigger:
+			s.send("\0")
+			timeTrigger = curTime + 1
 
 # Gets the IP from selected device
 def query_record_callback(sdRef, flags, interfaceIndex, errorCode, fullname, rrtype, rrclass, rdata, ttl):
