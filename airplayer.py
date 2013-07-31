@@ -269,16 +269,19 @@ try:
 finally:
 	browse_sdRef.close()
 
-print "-----"
-print "Available AirPlay Devices"
-print "-----"
-count = 1
-for host in resolvedHosts:
-	print "%d: %s" % (count, host.displayname)
-	count += 1
+if len(resolvedHosts) > 1:
+    print "-----"
+    print "Available AirPlay Devices"
+    print "-----"
+    count = 1
+    for host in resolvedHosts:
+	    print "%d: %s" % (count, host.displayname)
+	    count += 1
 	
-print "-----"
-selectedHost = int(raw_input("Select your airplay device...\n")) - 1
+    print "-----"
+    selectedHost = int(raw_input("Select your airplay device...\n")) - 1
+else:
+    selectedHost = 0
 
 if selectedHost >= len(resolvedHosts):
 	sys.exit("ERROR: There is no device at that index")
