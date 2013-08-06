@@ -161,8 +161,14 @@ def connect_to_socket(ip, port):
 	s.send(post_message(selectedVideo))
 	var = 1
 	print "Press CTRL-C to end."
+
+	timeTrigger = 0
 	while var == 1 :  # This constructs an infinite loop
-		pass
+		# keep the socket alive by sending a packet once per second
+		curTime = time.time()
+		if curTime > timeTrigger:
+			s.send("\0")
+			timeTrigger = curTime + 1
 
 # Gets the IP from selected device
 def query_record_callback(sdRef, flags, interfaceIndex, errorCode, fullname, rrtype, rrclass, rdata, ttl):
@@ -269,16 +275,19 @@ try:
 finally:
 	browse_sdRef.close()
 
-print "-----"
-print "Available AirPlay Devices"
-print "-----"
-count = 1
-for host in resolvedHosts:
-	print "%d: %s" % (count, host.displayname)
-	count += 1
+if len(resolvedHosts) > 1:
+    print "-----"
+    print "Available AirPlay Devices"
+    print "-----"
+    count = 1
+    for host in resolvedHosts:
+	    print "%d: %s" % (count, host.displayname)
+	    count += 1
 	
-print "-----"
-selectedHost = int(raw_input("Select your airplay device...\n")) - 1
+    print "-----"
+    selectedHost = int(raw_input("Select your airplay device...\n")) - 1
+else:
+    selectedHost = 0
 
 if selectedHost >= len(resolvedHosts):
 	sys.exit("ERROR: There is no device at that index")
